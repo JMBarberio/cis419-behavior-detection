@@ -104,15 +104,3 @@ def frameDeltaGivenPureBackground(video):
 
     img_array = np.array(img_list)
     return img_array
-
-
-img_array = frameDeltaGivenPureBackground("01_001.avi")
-"""
-img_array = getFrames("01_001.avi")
-temp = temporalGaussianDerivative(1, 100)
-image = spatialGaussian(img_array[1], 5, 10)
-
-plt.figure()
-plt.imshow(img_array[0], cmap="gray", vmin=0, vmax=255)
-plt.show()
-"""

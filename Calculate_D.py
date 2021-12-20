@@ -11,8 +11,8 @@ def calculate_D(W):
         D[i][i] = sum[i]
     return D
 
-input = np.array([[3,4,1],[5,6,10],[8,3,9]])
-output = calculate_D(input)
-print(input)
-print(output)
+#input = np.array([[3,4,1],[5,6,10],[8,3,9]])
+#output = calculate_D(input)
+#print(input)
+#print(output)
 

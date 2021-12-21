@@ -63,10 +63,8 @@ def quantiize(H_arr, K):
 
 
 if __name__ == "__main__":
-  img_arr, frame_delta_array, thresh_array = frameDeltaGivenPureBackground("01_001.avi")
+  img_arr = frameDeltaGivenPureBackground("01_001.avi")
   print(img_arr)
-  print(frame_delta_array)
-  print(thresh_array)
   
 
 

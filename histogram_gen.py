@@ -53,7 +53,7 @@ def scaleImage(image, scale_percent):
     return image
 
 
-def frameDeltaGivenPureBackground(video):
+def frameDeltaGivenPureBackground(video, show_imgs):
     vidcap = cv2.VideoCapture(video)
     success, image = vidcap.read()
     count = 0
@@ -74,13 +74,20 @@ def frameDeltaGivenPureBackground(video):
     ap.add_argument("-a", "--min-area", type=int, default=500, help="minimum area size")
     args = vars(ap.parse_args())
 
-    frameDelta = cv2.absdiff(img_list[0], img_list[60])
-    thresh = cv2.threshold(frameDelta, 25, 255, cv2.THRESH_BINARY)[1]
+    seconds = int(len(img_list) / 60)
+    frame_delta_list = []
+    thresh_list = []
 
-    thresh = cv2.threshold(thresh, 25, 255, cv2.THRESH_BINARY)[1]
-    # dilate the thresholded image to fill in holes, then find contours
-    # on thresholded image
-    thresh = cv2.dilate(thresh, None, iterations=2)
+    for second in range(seconds):
+        frameDelta = cv2.absdiff(img_list[second], img_list[second * 60])
+        frame_delta_list.append(frameDelta)
+
+        thresh = cv2.threshold(frameDelta, 25, 255, cv2.THRESH_BINARY)[1]
+        thresh = cv2.threshold(thresh, 25, 255, cv2.THRESH_BINARY)[1]
+        # dilate the thresholded image to fill in holes
+        thresh = cv2.dilate(thresh, None, iterations=2)
+        thresh_list.append(thresh)
+
     cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     cnts = imutils.grab_contours(cnts)
     # loop over the contours
@@ -96,11 +103,14 @@ def frameDeltaGivenPureBackground(video):
         cv2.rectangle(img_list[1], (x, y), (x + w, y + h), (0, 0, 0), 2)
         text = "Occupied"
 
-    cv2.imshow("im1", img_list[0])
-    cv2.imshow("im2", img_list[60])
-    cv2.imshow("Frame Delta", frameDelta)
-    cv2.imshow("Thresh", thresh)
-    cv2.waitKey()
+    if show_imgs:
+        cv2.imshow("im1", img_list[0])
+        cv2.imshow("im2", img_list[60])
+        cv2.imshow("Frame Delta", frameDelta)
+        cv2.imshow("Thresh", thresh)
+        cv2.waitKey()
 
     img_array = np.array(img_list)
-    return img_array
+    frame_delta_array = np.array(frame_delta_list)
+    thresh_array = np.array(thresh_list)
+    return img_array, frame_delta_array, thresh_array

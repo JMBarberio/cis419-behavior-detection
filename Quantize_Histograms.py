@@ -15,19 +15,12 @@ output:
 
 
 import numpy as np
-import scipy as sp
-import matplotlib.pyplot as plt
 from sklearn import cluster
 
 from histogram_gen import *
 
 
 """
-  H_arr = [H1, H2, H3, ...]
-
-  H_t = m x m
-
-   
   fit predict(X) --> labels
     X: (n_samples, n_features)
 
@@ -47,7 +40,7 @@ def quantiize(H_arr, K):
 
 
   temp_arr = np.asarray(X)
-  print(temp_arr.shape)
+  #print(temp_arr.shape)
   temp_arr = np.reshape(temp_arr, (n_samples, -1))
 
   k_means = cluster.KMeans(n_clusters=K)
@@ -58,10 +51,7 @@ def quantiize(H_arr, K):
 
 
 if __name__ == "__main__":
-  np.random.seed(0)
   img_array, frame_delta_array, thresh_array = frameDeltaGivenPureBackground("01_001.avi", False)
-  print(thresh_array.shape)
-
   labels, centers = quantiize(thresh_array, 10)
   print(labels)
   print(centers)

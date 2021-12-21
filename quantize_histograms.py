@@ -20,31 +20,59 @@ from sklearn import cluster
 from histogram_gen import *
 
 
-# one prototype per frame aka one histogram per framke
 
-
-def quantiize(H_arr, K):
-  n_samples = len(H_arr)
+# take a thresh and reshape it so its 2d and not 2d
+def mash(thresh):
+  n_samples = len(thresh)
   X = []
-  for Ht in H_arr:
+  for Ht in thresh:
     n = np.reshape(Ht, (-1, 1))
     X.append(n)
-
-
   temp_arr = np.asarray(X)
-  #print(temp_arr.shape)
   temp_arr = np.reshape(temp_arr, (n_samples, -1))
+  return temp_arr
 
+
+# merge all histograms into one array
+def merge(arr):
+  merged = arr[0]
+  mappings = {} #keep track of what frame is to what video? 
+
+  count = 0 # what actual hist # it is
+  index = 0 # index to start at in mapping
+  clip_num = 0
+
+  for i in arr:
+    l = len(i)
+    mappings[clip_num] = [i + index for i in range(0, l)]
+    index = index + l
+    clip_num += 1
+    
+    if count == 0:
+      count += 1
+      continue
+    else:
+      count += 1
+      x = np.vstack((merged, i))
+      merged = x
+
+  print(merged.shape)
+  print(mappings)
+  return merged, mappings
+
+
+
+def quantize(hists, K):
   k_means = cluster.KMeans(n_clusters=K)
-  labels = k_means.fit_predict(temp_arr)
+  labels = k_means.fit_predict(hists)
   centers = k_means.cluster_centers_
   return labels, centers
 
 
 
 if __name__ == "__main__":
-  img_array, frame_delta_array, thresh_array = frameDeltaGivenPureBackground("01_001.avi", False)
-  labels, centers = quantiize(thresh_array, 10)
+  img_array, frame_delta_array, thresh_array = frameDeltaGivenPureBackground("videos/01_001.avi", False)
+  labels, centers = quantize(thresh_array, 10)
   print(labels)
   print(centers)
 

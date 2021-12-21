@@ -1,8 +1,5 @@
 """
-Step 4 of Algorithm: 
 
-compute the co-occurrence matrix C(i, j) ∈ RK×N
-between each prototype feature pi and video segment vj
 C : K by N 
 C(i, j) = 1 iff segment vj contains an
 image frame whose image feature is classified as prototype pi
@@ -27,36 +24,26 @@ import matplotlib.pyplot as plt
 from sklearn import cluster
 
 
-def get_frames(t):
-  return 
+def prototypesFromFrames(frames, labels):
+  ps = []
+  for i in frames:
+    ps.append(labels[i])
+  return ps
 
 
-def prototypesFromFrames(t):
-  return
 
-
-
-def getCoMatrix(V_arr, labels):
-  K = 100
+# mappings: dict. what histograms correspond to what video segment
+def coMatrix(V_arr, labels, mappings):
   N = len(V_arr) # video segments
+  K = len(labels)
   cMatrix = np.zeros((K, N))
 
   for j in range(0,N):
-    frames = get_frames(j)
-    ps = prototypesFromFrames(frames)
+    frames = mappings[j]
+    ps = prototypesFromFrames(frames, labels)
     for i in range(0,K):
       if i in ps:
         cMatrix[i,j] = 1
 
   return cMatrix
-
-
-
-
-
-if __name__ == "__main__":
-    data = "testing"
-
-
-
 

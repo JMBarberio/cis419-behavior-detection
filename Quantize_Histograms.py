@@ -3,24 +3,10 @@ Step 2 of Algorithm:
 quantize every histogram Ht into K prototypes: 
 P = {p1, . . . , pK}
 
-
-Steps
-- apply vector quantization to the histogram feture vectors classifying them into a 
- dictionary of K prototype features, P = {p1,,,} USING K-means
-
 output: 
 1) the K protoypes aka centroids of the result of the k emeans algo
 2) a mapping of all the histograms to what prototype they end up in
-"""
 
-
-import numpy as np
-from sklearn import cluster
-
-from histogram_gen import *
-
-
-"""
   fit predict(X) --> labels
     X: (n_samples, n_features)
 
@@ -29,8 +15,14 @@ from histogram_gen import *
 """
 
 
+import numpy as np
+from sklearn import cluster
+from histogram_gen import *
+
 
 # one prototype per frame aka one histogram per framke
+
+
 def quantiize(H_arr, K):
   n_samples = len(H_arr)
   X = []

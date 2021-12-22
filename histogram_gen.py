@@ -1,8 +1,10 @@
+from typing import List
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.ndimage
 import imutils
 import argparse
+from itertools import islice
 import cv2
 
 
@@ -74,34 +76,33 @@ def frameDeltaGivenPureBackground(video, show_imgs):
     ap.add_argument("-a", "--min-area", type=int, default=500, help="minimum area size")
     args = vars(ap.parse_args())
 
-    seconds = int(len(img_list) / 60)
+    print("number of frames", len(img_list))
+
+    list_of_img_list = []
+    for i in range(0, len(img_list), 600):
+        list_of_img_list.append(img_list[i : i + 600])
+
+    print("number of segments", len(list_of_img_list))
+
     frame_delta_list = []
-    thresh_list = []
+    segment_thresh_lists = []
+    for list in list_of_img_list:
+        thresh_list = []
+        for frame in range(len(list)):
+            try:
+                frameDelta = cv2.absdiff(img_list[frame], img_list[frame + 1])
+                frame_delta_list.append(frameDelta)
 
-    for second in range(seconds):
-        frameDelta = cv2.absdiff(img_list[second], img_list[second * 60])
-        frame_delta_list.append(frameDelta)
-
-        thresh = cv2.threshold(frameDelta, 25, 255, cv2.THRESH_BINARY)[1]
-        thresh = cv2.threshold(thresh, 25, 255, cv2.THRESH_BINARY)[1]
-        # dilate the thresholded image to fill in holes
-        thresh = cv2.dilate(thresh, None, iterations=2)
-        thresh_list.append(thresh)
-
-    cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    cnts = imutils.grab_contours(cnts)
-    # loop over the contours
-    for c in cnts:
-        # if the contour is too small, ignore it
-
-        if cv2.contourArea(c) < args["min_area"]:
-            continue
-
-        # compute the bounding box for the contour, draw it on the frame,
-        # and update the text
-        (x, y, w, h) = cv2.boundingRect(c)
-        cv2.rectangle(img_list[1], (x, y), (x + w, y + h), (0, 0, 0), 2)
-        text = "Occupied"
+                thresh = cv2.threshold(frameDelta, 25, 255, cv2.THRESH_BINARY)[1]
+                thresh = cv2.threshold(thresh, 25, 255, cv2.THRESH_BINARY)[1]
+                # dilate the thresholded image to fill in holes
+                thresh = cv2.dilate(thresh, None, iterations=2)
+                thresh = np.array(thresh).ravel()
+                # print(thresh.shape)
+                thresh_list.append(thresh)
+            except:
+                pass
+        segment_thresh_lists.append(thresh_list)
 
     if show_imgs:
         cv2.imshow("im1", img_list[0])
@@ -113,4 +114,5 @@ def frameDeltaGivenPureBackground(video, show_imgs):
     img_array = np.array(img_list)
     frame_delta_array = np.array(frame_delta_list)
     thresh_array = np.array(thresh_list)
-    return img_array, frame_delta_array, thresh_array
+    segment_thresh_array = np.array(segment_thresh_lists)
+    return img_array, frame_delta_array, segment_thresh_array, len(list_of_img_list)

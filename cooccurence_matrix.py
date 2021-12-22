@@ -25,25 +25,22 @@ from sklearn import cluster
 
 
 def prototypesFromFrames(frames, labels):
-  ps = []
-  for i in frames:
-    ps.append(labels[i])
-  return ps
-
+    ps = []
+    for i in frames:
+        ps.append(labels[i])
+    return ps
 
 
 # mappings: dict. what histograms correspond to what video segment
-def coMatrix(V_arr, labels, mappings):
-  N = len(V_arr) # video segments
-  K = len(labels)
-  cMatrix = np.zeros((K, N))
+def coMatrix(segments, labels, mappings, K):
+    N = segments  # video segments
+    cMatrix = np.zeros((K, N))
 
-  for j in range(0,N):
-    frames = mappings[j]
-    ps = prototypesFromFrames(frames, labels)
-    for i in range(0,K):
-      if i in ps:
-        cMatrix[i,j] = 1
+    for j in range(0, N):
+        frames = mappings[j]
+        ps = prototypesFromFrames(frames, labels)
+        for i in range(0, K):
+            if i in ps:
+                cMatrix[i, j] = 1
 
-  return cMatrix
-
+    return cMatrix

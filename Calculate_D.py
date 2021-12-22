@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def calculate_D(W):
+def calculate_d(W):
     shape = W.shape
     if shape[0] != shape[1]:
         print("W must be a square matrix")

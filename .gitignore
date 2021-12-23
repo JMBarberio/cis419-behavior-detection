@@ -1,5 +1,6 @@
 01_001.avi
 settings.json
+.vscode/
 .venv/
 __pycache__/
 videos/

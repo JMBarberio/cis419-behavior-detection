@@ -4,6 +4,7 @@ import pandas as pd
 import seaborn as sns
 import cv2
 import os
+from numba import jit
 from histogram_gen import *
 from cosine_similarity import *
 from calculate_d import *
@@ -12,7 +13,6 @@ from split_input_video import *
 from cooccurence_matrix import *
 from quantize_histograms import *
 from sklearn.manifold import TSNE
-
 
 def main():
     files = []
@@ -23,10 +23,17 @@ def main():
             files.append("videos/" + f)
 
     histograms = []
+    segment_frame_mapping = []
+    N_counter = 0
     for f in files:
-        _, _, segment_thresh_array, N = frameDeltaGivenPureBackground(f, False)
+        _, _, segment_thresh_array, N, segment_frame_list, img_size = frameDeltaGivenPureBackground(f, False)
+        N_counter += N
+        segment_frame_mapping.extend(segment_frame_list)
         for segment in segment_thresh_array:
             histograms.append(segment)
+    
+    print(np.size(segment_frame_mapping))
+    N = N_counter
 
     # arr: (? , (480*856) )
     # mappings: what indexs of arr map to what vid num
@@ -51,8 +58,7 @@ def main():
 
     D = calculate_d(weight_matrix)
 
-    eigenvalues, eigenvectors = np.linalg.eig(D - weight_matrix)
-    np.printoptions(threshold=np.inf)
+    _, eigenvectors = np.linalg.eig(D - weight_matrix)
 
     segmentToEigenCoordsDict = {}
     e_vects = []
@@ -64,7 +70,8 @@ def main():
 
     e_vects = np.array(e_vects)
 
-    labels, centers = quantize(e_vects, 3)
+    labels, centers = quantize(e_vects, 10)
+
     clusters = {}
     for i in range(len(labels)):
         try:
@@ -79,8 +86,36 @@ def main():
             clusters[labels[i]] = []
 
     final = inter_cluster_similarity(clusters, S)
-    print("final")
-    print(final)
+    print("final", final)
+
+    finalnums = np.zeros(len(final))
+
+    for i in range(len(final)):
+        for j in range(len(final[i])):
+            finalnums[i]+= final[i][j]
+    sum = np.sum(finalnums)
+    for i in range(len(finalnums)):
+        finalnums[i] = finalnums[i]/sum
+    finalbools = np.zeros(len(finalnums))
+    thresholdval = 0.015
+    for i in range(len(finalbools)):
+        if (finalnums[i] < thresholdval):
+            finalbools[i] = 1
+    print('finalbools', finalbools)
+    print('finalnums', finalnums)
+
+    for i in range(len(finalnums)):
+        print("cluster", i, "has", len(clusters[i]),"segments")
+        if finalnums[i] < thresholdval:
+            print("cluster: ", clusters[i])
+            for index in clusters[i]:
+                name = 'segment'+str(index)+'.png'
+                cv2.imwrite('segment1'+str(index)+'.png', segment_frame_mapping[index][0])
+
+
+                        
+ 
+    
 
     tsne = TSNE(
         n_components=2, verbose=1, perplexity=5, n_iter=1000, learning_rate=200
@@ -88,46 +123,30 @@ def main():
     normalized_tsne = (tsne - np.min(tsne)) / (np.max(tsne) - np.min(tsne))
 
     df_tsne = pd.DataFrame(normalized_tsne, columns=["comp1", "comp2"])
-    df_tsne["label"] = np.arange(0, 7, 1)
-    sns.lmplot(x="comp1", y="comp2", data=df_tsne, hue="label", fit_reg=False)
+    #df_tsne["label"] = np.arange(0, N, 1)
+    listofx=[]
+    listofy=[]
+    for i in range(len(clusters)):
+        listx = []
+        listy = []
+        for j in range(len(clusters[i])):
+            listx.append(df_tsne['comp1'][clusters[i][j]])
+            listy.append(df_tsne['comp2'][clusters[i][j]])
+        listofx.append(listx)
+        listofy.append(listy)
+
+    sns.lmplot(x="comp1", y="comp2", data=df_tsne, fit_reg=False)
     plt.show()
-    print("tsne", normalized_tsne)
-    print("type", type(tsne))
-
-    """
-    tx = tsne[:, 0]
-    ty = tsne[:, 1]
-
-    # initialize a matplotlib plot
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-
-    # for every class, we'll add a scatter plot separately
-    for label in labels:
-        # find the samples of the current class in the data
-        indices = [i for i, l in enumerate(labels) if l == label]
-
-        # extract the coordinates of the points of this class only
-        current_tx = np.take(tx, indices)
-        current_ty = np.take(ty, indices)
-
-        # convert the class color to matplotlib format
-        color = np.array(labels[label], dtype=np.float) / 255
-
-        # add a scatter plot with the corresponding color and label
-        ax.scatter(current_tx, current_ty, c=color, label=label)
-
-    # build a legend using the labels we set previously
-    ax.legend(loc="best")
-
-    # finally, show the plot
+    for i in range(len(listofx)):
+        plt.scatter(listofx[i], listofy[i])
     plt.show()
-    """
 
+
+
+    
     return S
 
 
 if __name__ == "__main__":
     S = main()
     np.set_printoptions(threshold=np.inf)
-    print("S", S)

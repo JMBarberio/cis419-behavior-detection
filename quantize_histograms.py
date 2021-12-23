@@ -18,7 +18,7 @@ output:
 import numpy as np
 from sklearn import cluster
 from histogram_gen import *
-
+from furthest_point import *
 
 # take a thresh and reshape it so its 2d and not 2d
 def mash(thresh):
@@ -59,7 +59,7 @@ def merge(arr):
 
 
 def quantize(hists, K):
-    k_means = cluster.KMeans(n_clusters=K)
+    k_means = cluster.KMeans(n_clusters=K, init=furthest_point)
     labels = k_means.fit_predict(hists)
     centers = k_means.cluster_centers_
     return labels, centers

@@ -1,3 +1,3 @@
 # cis419-behavior-detection
 
-# katie testing
+use pip install -r requirements.txt to add all of the packages for the venv
